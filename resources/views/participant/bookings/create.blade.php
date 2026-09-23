@@ -47,12 +47,16 @@
 
             <div>
                 <label for="topic_id" class="block text-sm font-semibold text-slate-700 mb-2">2. Topik Konsultasi (opsional)</label>
-                <select name="topic_id" id="topic_id" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#FFC300]">
-                    <option value="">— Pilih Topik —</option>
-                    @foreach ($topics as $topic)
-                        <option value="{{ $topic->id }}">{{ $topic->name }}</option>
-                    @endforeach
-                </select>
+                @if ($topics->isEmpty())
+                    <p class="text-sm text-slate-500 border border-dashed border-slate-300 rounded-lg px-4 py-3">Mentor ini belum memiliki topik yang terdaftar.</p>
+                @else
+                    <select name="topic_id" id="topic_id" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#FFC300]">
+                        <option value="">— Pilih Topik —</option>
+                        @foreach ($topics as $topic)
+                            <option value="{{ $topic->id }}">{{ $topic->name }}</option>
+                        @endforeach
+                    </select>
+                @endif
             </div>
 
             <div>

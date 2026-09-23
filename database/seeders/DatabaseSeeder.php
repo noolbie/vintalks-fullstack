@@ -92,6 +92,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Laporan & Remediation', 'description' => 'Penyusunan laporan temuan beserta rekomendasi perbaikan keamanan.'],
         ])->map(fn ($data) => Topic::firstOrCreate(['name' => $data['name']], $data));
 
+        // Topik keahlian untuk mentor demo (semuanya terkait cyber security).
+        if ($demoMentor) {
+            $demoMentor->topics()->sync($topics->pluck('id'));
+        }
+
         // Pengaturan pembayaran default
         Setting::set('payment_bank_name', 'BCA');
         Setting::set('payment_account_name', 'VinTalks');

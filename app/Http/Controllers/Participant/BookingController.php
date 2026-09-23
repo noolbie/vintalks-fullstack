@@ -10,7 +10,6 @@ use App\Services\BookingService;
 use App\Services\DocumentService;
 use App\Models\Booking;
 use App\Models\MentorProfile;
-use App\Models\Topic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -26,7 +25,7 @@ class BookingController extends Controller
 
         return view('participant.bookings.create', [
             'mentor' => $mentor->load('topics', 'user'),
-            'topics' => Topic::orderBy('name')->get(),
+            'topics' => $mentor->topics->sortBy('name'),
             'availableDates' => $availabilityService->availableDates($mentor),
         ]);
     }
