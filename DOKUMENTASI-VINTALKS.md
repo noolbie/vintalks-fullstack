@@ -190,11 +190,11 @@ php artisan config:clear
 php artisan cache:clear
 ```
 
-**Selesai.** Buka di browser (mengikuti struktur Laragon):
+**Selesai.** Buka di browser (mengikuti struktur webserver):
 `http://localhost/vintalks/public/`
 
 > Kalau sub-folder beda (mis. bukan `vintalks`), sesuaikan saja nama di URL.
-> Pastikan folder project berada di dalam `D:\laragon\www\` supaya dikenali Laragon.
+> Pastikan folder project berada di dalam `webroot`.
 
 **Troubleshooting singkat**
 - `tidak bisa cari vendor` → jalankan `composer install`.
