@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\MeetingProvider;
+use App\Enums\PackageApprovalStatus;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,10 +28,16 @@ class Booking extends Model
         'mentor_id',
         'mentor_availability_id',
         'topic_id',
+        'package_id',
         'session_date',
         'start_time',
         'end_time',
         'price',
+        'discount_amount',
+        'package_approval_status',
+        'package_approved_at',
+        'package_rejected_at',
+        'package_rejection_reason',
         'booking_status',
         'payment_status',
         'meeting_provider',
@@ -46,6 +53,9 @@ class Booking extends Model
     protected $casts = [
         'session_date' => 'date',
         'price' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'package_approved_at' => 'datetime',
+        'package_rejected_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
         'mentor_paid_at' => 'datetime',
@@ -94,6 +104,12 @@ class Booking extends Model
     public function topic(): BelongsTo
     {
         return $this->belongsTo(Topic::class);
+    }
+
+    // Paket potongan harga yang dipilih peserta (opsional).
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
     }
 
     // Booking punya 1 syarat konsultasi.
@@ -167,6 +183,51 @@ class Booking extends Model
     public function getPaymentStatusLabelAttribute(): string
     {
         return PaymentStatus::from($this->payment_status)->label();
+    }
+
+    // ==== Paket potongan harga ====
+
+    // Apakah booking memakai paket potongan.
+    public function hasPackage(): bool
+    {
+        return $this->package_id !== null;
+    }
+
+    // Status persetujuan paket (menunggu admin / disetujui / ditolak).
+    public function getPackageStatusLabelAttribute(): string
+    {
+        return PackageApprovalStatus::from($this->package_approval_status)->label();
+    }
+
+    // Harga sesi sebelum dipotong paket (harga normal mentor).
+    public function getPackageBasePriceAttribute(): float
+    {
+        return round(((float) $this->price) + (float) ($this->discount_amount ?? 0), 2);
+    }
+
+    public function getDiscountAmountFormattedAttribute(): string
+    {
+        return 'Rp'.number_format((float) ($this->discount_amount ?? 0), 0, ',', '.');
+    }
+
+    public function getPackageBasePriceFormattedAttribute(): string
+    {
+        return 'Rp'.number_format($this->package_base_price, 0, ',', '.');
+    }
+
+    public function isPackagePending(): bool
+    {
+        return $this->package_approval_status === PackageApprovalStatus::Pending->value;
+    }
+
+    public function isPackageApproved(): bool
+    {
+        return $this->package_approval_status === PackageApprovalStatus::Approved->value;
+    }
+
+    public function isPackageRejected(): bool
+    {
+        return $this->package_approval_status === PackageApprovalStatus::Rejected->value;
     }
 
     // ==== Komisi & pendapatan mentor ====

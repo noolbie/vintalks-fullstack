@@ -35,8 +35,10 @@
                     <x-sidenav-link :route="route('admin.participants.index')" label="Peserta" icon="ri-team-line"/>
                     <x-sidenav-link :route="route('admin.mentors.index')" label="Mentor" icon="ri-user-star-line"/>
                     <x-sidenav-link :route="route('admin.topics.index')" label="Topik" icon="ri-price-tag-3-line"/>
+                    <x-sidenav-link :route="route('admin.packages.index')" label="Paket" icon="ri-gift-2-line"/>
                     <x-sidenav-link :route="route('admin.bookings.index')" label="Booking" icon="ri-calendar-check-line"/>
                     <x-sidenav-link :route="route('admin.payments.index')" label="Pembayaran" icon="ri-money-dollar-circle-line"/>
+                    <x-sidenav-link :route="route('admin.package-approvals.index')" label="Persetujuan Paket" icon="ri-checkbox-circle-line"/>
                     <x-sidenav-link :route="route('admin.transactions.index')" label="Transaksi Mentor" icon="ri-arrow-left-right-line"/>
                     <x-sidenav-link :route="route('admin.settings.edit')" label="Pengaturan" icon="ri-settings-3-line"/>
                     <x-sidenav-link :route="route('admin.consultation-results.index')" label="Hasil Konsultasi" icon="ri-file-list-3-line"/>

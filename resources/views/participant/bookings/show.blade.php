@@ -35,6 +35,31 @@
                     </dl>
                 </div>
 
+                @if ($booking->hasPackage())
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <h3 class="font-semibold text-slate-700 mb-2">Paket Potongan</h3>
+                        <dl class="text-sm space-y-2">
+                            <div class="flex justify-between"><dt class="text-slate-500">Paket</dt><dd class="font-medium">{{ $booking->package?->name }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Potongan</dt><dd class="font-bold text-emerald-700">{{ $booking->discount_amount_formatted }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd><span class="badge {{ $booking->isPackageApproved() ? 'badge-green' : ($booking->isPackageRejected() ? 'badge-red' : 'badge-yellow') }}">{{ $booking->package_status_label }}</span></dd></div>
+                        </dl>
+                        @if ($booking->isPackagePending())
+                            <p class="mt-3 text-xs text-amber-700">Potongan menunggu persetujuan admin. Jika disetujui, nominal akan final.</p>
+                        @endif
+                        @if ($booking->isPackageRejected())
+                            <p class="mt-3 text-xs text-rose-700 bg-rose-50 rounded-lg px-3 py-2">Paket ditolak admin{{ $booking->package_rejection_reason ? ': '.$booking->package_rejection_reason : '.' }} Harga sesi dikembalikan ke harga normal.</p>
+                        @endif
+                        @if ($booking->package?->benefits)
+                            <h4 class="text-sm font-semibold text-slate-700 mt-3">Benefit yang didapat:</h4>
+                            <ul class="text-sm text-slate-600 mt-1 space-y-1 list-disc list-inside">
+                                @foreach ($booking->package->benefits as $benefit)
+                                    <li>{{ $benefit }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                @endif
+
                 @if ($booking->requirement)
                     <div class="bg-slate-50 rounded-xl p-4">
                         <h3 class="font-semibold text-slate-700 mb-3">Kebutuhan Konsultasi</h3>

@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus; // Enum status sesi booking (pending, payment_pending, confirmed, completed, dll).
+use App\Enums\PackageApprovalStatus; // Enum status persetujuan paket potongan.
 use App\Enums\PaymentStatus; // Enum status pembayaran (unpaid, waiting_verification, verified, rejected, dll).
 use App\Models\Booking;
 use App\Models\MentorProfile;
+use App\Models\Package;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
@@ -35,7 +37,36 @@ class BookingService
         $startTime = data_get($data, 'start_time');
         $endTime = data_get($data, 'end_time');
 
-        return \DB::transaction(function () use ($mentorProfile, $participant, $sessionDate, $startTime, $endTime, $data) {
+        // Paket potongan: nominal disimpan = selisih harga normal vs promo; harga sesi = harga mentor - potongan.
+        $package = null;
+        $discount = 0.0;
+        $packageId = data_get($data, 'package_id');
+        if ($packageId) {
+            $package = Package::find($packageId);
+            if ($package) {
+                // Satu peserta hanya boleh memakai 1 paket; paket yang DITOLAK admin tetap boleh mencoba paket lain.
+                $alreadyUsed = $participant->participantBookings()
+                    ->whereNotNull('package_id')
+                    ->whereIn('package_approval_status', [
+                        PackageApprovalStatus::Pending->value,
+                        PackageApprovalStatus::Approved->value,
+                    ])
+                    ->exists();
+
+                if ($alreadyUsed) {
+                    throw ValidationException::withMessages([
+                        'package' => "Kamu sudah menggunakan paket layanan; booking berikutnya memakai harga standar.",
+                    ]);
+                }
+
+                $discount = (float) $package->discount;
+            }
+        }
+
+        $basePrice = data_get($data, 'price', $mentorProfile->price);
+        $finalPrice = max(0, (float) $basePrice - $discount);
+
+        return \DB::transaction(function () use ($mentorProfile, $participant, $sessionDate, $startTime, $endTime, $data, $package, $discount, $finalPrice) {
             $slot = $this->availabilityService->findBookableSlot($mentorProfile, $sessionDate, $startTime, $endTime);
 
             // Lock the availability row to serialize concurrent bookings on the same slot.
@@ -70,10 +101,15 @@ class BookingService
                 'mentor_id' => $mentorProfile->user_id,
                 'mentor_availability_id' => $slot->id,
                 'topic_id' => data_get($data, 'topic_id'),
+                'package_id' => $package?->id,
+                'discount_amount' => $discount > 0 ? $discount : null,
+                'package_approval_status' => $package
+                    ? PackageApprovalStatus::Pending->value
+                    : PackageApprovalStatus::None->value,
                 'session_date' => $sessionDate,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'price' => data_get($data, 'price', $mentorProfile->price),
+                'price' => $finalPrice,
                 'booking_status' => BookingStatus::PaymentPending->value,
                 'payment_status' => PaymentStatus::Unpaid->value,
             ]);

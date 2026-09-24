@@ -16,6 +16,7 @@ class BookingRequest extends FormRequest
         return [
             'slot_id' => ['required', 'integer'],
             'topic_id' => ['nullable', 'integer', 'exists:topics,id'],
+            'package_id' => ['nullable', 'integer', 'exists:packages,id'],
             'linkedin_url' => ['nullable', 'url', 'max:255'],
             'career_goal' => ['nullable', 'string', 'max:5000'],
             'consultation_topic' => ['nullable', 'string', 'max:500'],

@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ConsultationResultController as AdminConsultationResultController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MentorController as AdminMentorController;
+use App\Http\Controllers\Admin\PackageApprovalController as AdminPackageApprovalController;
+use App\Http\Controllers\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Admin\ParticipantController as AdminParticipantController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
@@ -36,6 +38,8 @@ use Illuminate\Support\Facades\Route;
 */
 // Rute publik: halaman utama + login/register untuk pengunjung yang belum masuk.
 Route::get('/', [HomeController::class, 'index'])->name('home');
+// Pilih paket dari landing page (simpan di session, arahkan ke register/daftar mentor).
+Route::get('paket/{package}/pilih', [HomeController::class, 'selectPackage'])->name('packages.select');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -145,6 +149,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('topics', [TopicController::class, 'store'])->name('topics.store');
     Route::put('topics/{topic}', [TopicController::class, 'update'])->name('topics.update');
     Route::delete('topics/{topic}', [TopicController::class, 'destroy'])->name('topics.destroy');
+
+    Route::get('packages', [AdminPackageController::class, 'index'])->name('packages.index');
+    Route::get('packages/create', [AdminPackageController::class, 'create'])->name('packages.create');
+    Route::post('packages', [AdminPackageController::class, 'store'])->name('packages.store');
+    Route::get('packages/{package}/edit', [AdminPackageController::class, 'edit'])->name('packages.edit');
+    Route::put('packages/{package}', [AdminPackageController::class, 'update'])->name('packages.update');
+    Route::delete('packages/{package}', [AdminPackageController::class, 'destroy'])->name('packages.destroy');
+
+    Route::get('package-approvals', [AdminPackageApprovalController::class, 'index'])->name('package-approvals.index');
+    Route::post('package-approvals/{booking}/approve', [AdminPackageApprovalController::class, 'approve'])->name('package-approvals.approve');
+    Route::post('package-approvals/{booking}/reject', [AdminPackageApprovalController::class, 'reject'])->name('package-approvals.reject');
 
     Route::get('bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
     Route::get('bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');

@@ -420,64 +420,29 @@
                 </p>
             </div>
             <div class="pricing-cards">
-                <div class="card">
-                    <img src= "assets/programs-starter.png" class="card-image">
-                    <h3>Starter Package</h3>
-                    <p class="description">Persiapan dasar dengan eksplorasi peluang kerja internasional/remote serta pengarahan awal.</p>
-                    <p class="old-price">Rp 95.000</p>
-                    <p class="price">Rp 65.000</p>
-                    <div class="benefits">
-                        <h4>Yang Kamu Dapatkan:</h4>
-                        <ul>
-                            <li>Konsultasi privat 1-on-1 (45 menit) bersama mentor VinTalks.</li>
-                            <li>Penilaian awal kesiapan karier global (Skill Assessment).</li>
-                            <li>Rekomendasi jalur karier internasional yang sesuai dengan skill dan minat.</li>
-                            <li>Arahan peningkatan soft skill dan hard skill agar lebih kompetitif.</li>
-                            <li>E-book eksklusif "Checklist Langkah Awal Menuju Karier Internasional".</li>
-                        </ul>
+                @forelse ($packages as $package)
+                    <div class="card {{ $package->is_popular ? 'popular' : '' }}">
+                        @if ($package->is_popular)
+                            <div class="label">⭐ Most Popular ⭐</div>
+                        @endif
+                        <img src="{{ asset($package->image ?: 'assets/programs-starter.png') }}" class="card-image" alt="{{ $package->name }}">
+                        <h3>{{ $package->name }}</h3>
+                        <p class="description">{{ $package->description }}</p>
+                        <p class="old-price">{{ $package->old_price_formatted }}</p>
+                        <p class="price">{{ $package->price_formatted }}</p>
+                        <div class="benefits">
+                            <h4>Yang Kamu Dapatkan:</h4>
+                            <ul>
+                                @foreach ($package->benefits ?? [] as $benefit)
+                                    <li>{{ $benefit }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <a class="btn" href="{{ route('packages.select', $package) }}">Book Consultation</a>
                     </div>
-                    <a class="btn" href="{{ route('register') }}">Book Consultation</a>
-                </div>
-                <div class="card popular">
-                    <div class="label">⭐ Most Popular ⭐</div>
-                    <img src= "assets/programs-profesional.png" class="card-image">
-                    <h3>Professional Package</h3>
-                    <p class="description">Persiapan tingkat menengah untuk membangun citra profesional yang lebih kuat di mata HR global dan meningkatkan peluang lolos seleksi internasional.</p>
-                    <p class="old-price">Rp 150.000</p>
-                    <p class="price">Rp 110.000</p>
-                    <div class="benefits">
-                        <h4>Yang Kamu Dapatkan:</h4>
-                        <ul>
-                            <li>Konsultasi privat 1-on-1 (60 menit) bersama mentor VinTalks.</li>
-                            <li>Review CV internasional & penyesuaian format ATS-friendly.</li>
-                            <li>Rekomendasi jalur karier internasional sesuai dengan skill dan minat.</li>
-                            <li>Review dan optimasi profil LinkedIn untuk peluang karier global.</li>
-                            <li>Review portofolio untuk menembus pasar global.</li>
-                            <li>Template CV, cover letter, dan email berstandar internasional.</li>
-                        </ul>
-                    </div>
-                    <a class="btn" href="{{ route('register') }}">Book Consultation</a>
-                </div>
-                <div class="card">
-                    <img src= "assets/programs-premium.png" class="card-image">
-                    <h3>Premium Package</h3>
-                    <p class="description">Pendampingan lengkap membangun citra profesional berstandar global, mulai dari persiapan dokumen dan simulasi seleksi kerja internasional.</p>
-                    <p class="old-price">Rp 350.000</p>
-                    <p class="price">Rp 300.000</p>
-                    <div class="benefits">
-                        <h4>Yang Kamu Dapatkan:</h4>
-                        <ul>
-                            <li>Konsultasi privat 1-on-1 (120 menit) bersama mentor VinTalks.</li>
-                            <li>Simulasi wawancara kerja internasional dengan feedback profesional.</li>
-                            <li>Diskon eksklusif sebesar 30% untuk kelas Bahasa Inggris di VINIX7.</li>
-                            <li>Review menyeluruh CV, profil LinkedIn, dan portofolio.</li>
-                            <li>Strategi penyusunan portofolio & cover letter yang kuat dan relevan.</li>
-                            <li>Rencana personal branding untuk menembus pasar global.</li>
-                            <li>Worksheet eksklusif "Roadmap 30 Hari Menuju Karier Global".</li>
-                        </ul>
-                    </div>
-                    <a class="btn" href="{{ route('register') }}">Book Consultation</a>
-                </div>
+                @empty
+                    <p class="text-center text-slate-500">Paket belum tersedia.</p>
+                @endforelse
             </div>
         </section>
         <!-- SECTION TESTIMONIAL -->

@@ -23,7 +23,32 @@
             @csrf
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">1. Pilih Tanggal & Jam</label>
+                <label for="package_id" class="block text-sm font-semibold text-slate-700 mb-2">1. Paket Potongan Harga (opsional)</label>
+                @if ($usedPackage)
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+                        Kamu sudah menggunakan paket <strong>{{ $usedPackage->name }}</strong>
+                        (potongan {{ $usedPackage->discount_formatted }}) pada sesi sebelumnya. Paket hanya bisa dipakai <strong>1 kali</strong>,
+                        jadi untuk booking ini dan seterusnya hanya berlaku <strong>harga standar</strong> tanpa potongan.
+                    </div>
+                @else
+                    <p class="text-sm text-slate-500 mb-3">Pilih paket untuk mendapat potongan rupiah dari sesi ini. Potongan menunggu persetujuan admin, dan tiap peserta hanya bisa memakai 1 paket selamanya.</p>
+                    <select name="package_id" id="package_id" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#FFC300]">
+                        <option value="">— Tanpa Paket —</option>
+                        @foreach ($packages as $package)
+                            <option value="{{ $package->id }}"
+                                    data-discount="{{ $package->discount }}"
+                                    data-name="{{ $package->name }}"
+                                    @selected($selectedPackage?->id === $package->id)>
+                                {{ $package->name }} (potongan {{ $package->discount_formatted }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p id="package-note" class="hidden mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"></p>
+                @endif
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">2. Pilih Tanggal & Jam</label>
                 @if (count($availableDates))
                     <div class="flex flex-wrap gap-2 mb-3">
                         @foreach ($availableDates as $date)
@@ -46,7 +71,7 @@
             </div>
 
             <div>
-                <label for="topic_id" class="block text-sm font-semibold text-slate-700 mb-2">2. Topik Konsultasi (opsional)</label>
+                <label for="topic_id" class="block text-sm font-semibold text-slate-700 mb-2">3. Topik Konsultasi (opsional)</label>
                 @if ($topics->isEmpty())
                     <p class="text-sm text-slate-500 border border-dashed border-slate-300 rounded-lg px-4 py-3">Mentor ini belum memiliki topik yang terdaftar.</p>
                 @else
@@ -60,7 +85,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">3. Informasi Konsultasi</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">4. Informasi Konsultasi</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input type="url" name="linkedin_url" value="{{ old('linkedin_url') }}" placeholder="URL Profil LinkedIn (opsional)"
                            class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#FFC300]">
@@ -78,7 +103,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">4. Lampiran Dokumen (opsional)</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">5. Lampiran Dokumen (opsional)</label>
                 <p class="text-xs text-slate-500 mb-3">Unggah CV atau dokumen pendukung agar mentor dapat mempersiapkan diri. Maksimal 5MB per file.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -94,9 +119,10 @@
 
             <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
                 <div>
-                    <p class="text-sm text-slate-600">Total pembayaran:</p>
-                    <p class="text-2xl font-bold text-[#001D3D]">{{ $mentor->price_formatted }}</p>
-                    <p class="text-xs text-slate-500">Pembayaran dilakukan setelah booking dibuat.</p>
+                    <p class="text-sm text-slate-600">Harga normal: <span id="sum-base">{{ $mentor->price_formatted }}</span></p>
+                    <p class="text-sm text-slate-600">Potongan paket: <span id="sum-discount" class="text-emerald-700">Rp0</span></p>
+                    <p class="text-2xl font-bold text-[#001D3D]">Total: <span id="sum-total">{{ $mentor->price_formatted }}</span></p>
+                    <p class="text-xs text-slate-500 mt-1">Pembayaran dilakukan setelah booking dibuat.</p>
                 </div>
                 <button type="submit" class="bg-[#FFC300] hover:bg-amber-400 text-[#001D3D] font-semibold px-8 py-3 rounded-lg">
                     Buat Booking
@@ -116,7 +142,36 @@
     @push('scripts')
     <script>
         const mentorSlotsUrl = "{{ route('participant.mentors.slots', $mentor) }}";
+        const mentorBasePrice = @json((float) $mentor->price);
         let selectedSlot = null;
+
+        function formatRp(value) {
+            return 'Rp' + Math.round(value).toLocaleString('id-ID');
+        }
+
+        function updatePriceSummary() {
+            const sel = document.getElementById('package_id');
+            const opt = sel ? sel.selectedOptions[0] : null;
+            const discount = opt && opt.dataset.discount ? parseFloat(opt.dataset.discount) : 0;
+            const total = Math.max(0, mentorBasePrice - discount);
+
+            document.getElementById('sum-discount').textContent = formatRp(discount);
+            document.getElementById('sum-total').textContent = formatRp(total);
+
+            const note = document.getElementById('package-note');
+            if (discount > 0 && opt && opt.dataset.name) {
+                note.classList.remove('hidden');
+                note.textContent = 'Potongan paket "' + opt.dataset.name + '" sebesar ' + formatRp(discount) + ' akan dikurangi dari total dan menunggu persetujuan admin.';
+            } else if (note) {
+                note.classList.add('hidden');
+            }
+        }
+
+        const packageSelect = document.getElementById('package_id');
+        if (packageSelect) {
+            packageSelect.addEventListener('change', updatePriceSummary);
+        }
+        updatePriceSummary();
 
         document.querySelectorAll('.date-pill').forEach(btn => {
             btn.addEventListener('click', () => {

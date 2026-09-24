@@ -11,6 +11,7 @@ use App\Models\MentorAvailability;
 use App\Models\MentorProfile;
 use App\Models\ParticipantProfile;
 use App\Models\Payment;
+use App\Models\Package;
 use App\Models\Topic;
 use App\Models\User;
 use App\Models\Setting;
@@ -96,6 +97,59 @@ class DatabaseSeeder extends Seeder
         if ($demoMentor) {
             $demoMentor->topics()->sync($topics->pluck('id'));
         }
+
+        // Paket potongan harga (Starter/Professional/Premium) yang tampil di landing & bisa diedit admin.
+        Package::firstOrCreate(['slug' => 'starter'], [
+            'name' => 'Starter Package',
+            'description' => 'Persiapan dasar dengan eksplorasi peluang kerja internasional/remote serta pengarahan awal.',
+            'old_price' => 95000,
+            'price' => 65000,
+            'image' => 'assets/programs-starter.png',
+            'benefits' => [
+                'Konsultasi privat 1-on-1 (45 menit) bersama mentor VinTalks.',
+                'Penilaian awal kesiapan karier global (Skill Assessment).',
+                'Rekomendasi jalur karier internasional yang sesuai dengan skill dan minat.',
+                'Arahan peningkatan soft skill dan hard skill agar lebih kompetitif.',
+                'E-book eksklusif "Checklist Langkah Awal Menuju Karier Internasional".',
+            ],
+            'is_popular' => false,
+            'is_active' => true,
+        ]);
+        Package::firstOrCreate(['slug' => 'professional'], [
+            'name' => 'Professional Package',
+            'description' => 'Persiapan tingkat menengah untuk membangun citra profesional yang lebih kuat di mata HR global dan meningkatkan peluang lolos seleksi internasional.',
+            'old_price' => 150000,
+            'price' => 110000,
+            'image' => 'assets/programs-profesional.png',
+            'benefits' => [
+                'Konsultasi privat 1-on-1 (60 menit) bersama mentor VinTalks.',
+                'Review CV internasional & penyesuaian format ATS-friendly.',
+                'Rekomendasi jalur karier internasional sesuai dengan skill dan minat.',
+                'Review dan optimasi profil LinkedIn untuk peluang karier global.',
+                'Review portofolio untuk menembus pasar global.',
+                'Template CV, cover letter, dan email berstandar internasional.',
+            ],
+            'is_popular' => true,
+            'is_active' => true,
+        ]);
+        Package::firstOrCreate(['slug' => 'premium'], [
+            'name' => 'Premium Package',
+            'description' => 'Pendampingan lengkap membangun citra profesional berstandar global, mulai dari persiapan dokumen dan simulasi seleksi kerja internasional.',
+            'old_price' => 350000,
+            'price' => 300000,
+            'image' => 'assets/programs-premium.png',
+            'benefits' => [
+                'Konsultasi privat 1-on-1 (120 menit) bersama mentor VinTalks.',
+                'Simulasi wawancara kerja internasional dengan feedback profesional.',
+                'Diskon eksklusif sebesar 30% untuk kelas Bahasa Inggris di VINIX7.',
+                'Review menyeluruh CV, profil LinkedIn, dan portofolio.',
+                'Strategi penyusunan portofolio & cover letter yang kuat dan relevan.',
+                'Rencana personal branding untuk menembus pasar global.',
+                'Worksheet eksklusif "Roadmap 30 Hari Menuju Karier Global".',
+            ],
+            'is_popular' => false,
+            'is_active' => true,
+        ]);
 
         // Pengaturan pembayaran default
         Setting::set('payment_bank_name', 'BCA');

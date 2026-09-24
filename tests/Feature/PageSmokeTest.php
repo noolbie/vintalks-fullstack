@@ -63,6 +63,8 @@ class PageSmokeTest extends TestCase
         $this->actingAs($user)->get(route('admin.participants.index'))->assertOk();
         $this->actingAs($user)->get(route('admin.mentors.index'))->assertOk();
         $this->actingAs($user)->get(route('admin.topics.index'))->assertOk();
+        $this->actingAs($user)->get(route('admin.packages.index'))->assertOk();
+        $this->actingAs($user)->get(route('admin.package-approvals.index'))->assertOk();
         $this->actingAs($user)->get(route('admin.bookings.index'))->assertOk();
         $this->actingAs($user)->get(route('admin.payments.index'))->assertOk();
         $this->actingAs($user)->get(route('admin.transactions.index'))->assertOk();

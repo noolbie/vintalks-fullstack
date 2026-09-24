@@ -10,6 +10,7 @@ use App\Services\BookingService;
 use App\Services\DocumentService;
 use App\Models\Booking;
 use App\Models\MentorProfile;
+use App\Models\Package;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -26,6 +27,9 @@ class BookingController extends Controller
         return view('participant.bookings.create', [
             'mentor' => $mentor->load('topics', 'user'),
             'topics' => $mentor->topics->sortBy('name'),
+            'packages' => Package::query()->where('is_active', true)->get(),
+            'selectedPackage' => Package::query()->where('slug', session('selected_package'))->where('is_active', true)->first(),
+            'usedPackage' => $this->participantUsedPackage(),
             'availableDates' => $availabilityService->availableDates($mentor),
         ]);
     }
@@ -39,10 +43,13 @@ class BookingController extends Controller
         $booking = $bookingService->create($mentor, $participant, [
             'slot_id' => $request->integer('slot_id'),
             'topic_id' => $request->input('topic_id'),
+            'package_id' => $request->input('package_id'),
             'session_date' => $request->input('session_date'),
             'start_time' => $request->input('start_time'),
             'end_time' => $request->input('end_time'),
         ]);
+
+        session()->forget('selected_package');
 
         $booking->requirement()->create($request->only([
             'linkedin_url',
@@ -120,5 +127,22 @@ class BookingController extends Controller
         abort_unless($booking->isOwnedByParticipant(Auth::id()), 403);
 
         return view('participant.bookings.cancel-reason', ['booking' => $booking]);
+    }
+
+    // Paket yang sedang/kegunaan peserta (menunggu/disetujui) - 1 paket per peserta.
+    // Paket yang DITOLAK tidak mengunci: peserta boleh mencoba paket lain.
+    private function participantUsedPackage(): ?\App\Models\Package
+    {
+        $used = Auth::user()->participantBookings()
+            ->whereNotNull('package_id')
+            ->whereIn('package_approval_status', [
+                \App\Enums\PackageApprovalStatus::Pending->value,
+                \App\Enums\PackageApprovalStatus::Approved->value,
+            ])
+            ->with('package')
+            ->orderBy('created_at')
+            ->first();
+
+        return $used?->package;
     }
 }

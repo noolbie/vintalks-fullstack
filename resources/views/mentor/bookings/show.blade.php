@@ -20,6 +20,34 @@
             </div>
         </div>
 
+        @if ($booking->hasPackage())
+            <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="font-semibold text-slate-700">Paket Peserta: {{ $booking->package?->name }}</h3>
+                    <span class="badge {{ $booking->isPackageApproved() ? 'badge-green' : ($booking->isPackageRejected() ? 'badge-red' : 'badge-yellow') }}">{{ $booking->package_status_label }}</span>
+                </div>
+                <p class="text-sm text-slate-600 mt-1">{{ $booking->package?->description }}</p>
+                <p class="text-sm mt-2">
+                    Potongan paket: <span class="font-bold text-emerald-700">{{ $booking->discount_amount_formatted }}</span>
+                    <span class="text-slate-500">• Harga sesi: {{ $booking->price_formatted }}</span>
+                </p>
+                @if ($booking->package?->benefits)
+                    <h4 class="text-sm font-semibold text-slate-700 mt-3">Yang harus diberikan pada hasil sesi:</h4>
+                    <ul class="text-sm text-slate-600 mt-1 space-y-1 list-disc list-inside">
+                        @foreach ($booking->package->benefits as $benefit)
+                            <li>{{ $benefit }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+                @if ($booking->isPackagePending())
+                    <p class="mt-3 text-xs text-amber-700">Paket masih menunggu persetujuan admin; potongan belum final.</p>
+                @endif
+                @if ($booking->isPackageRejected() && $booking->package_rejection_reason)
+                    <p class="mt-3 text-xs text-rose-700 bg-rose-50 rounded-lg px-3 py-2">Paket ditolak admin: {{ $booking->package_rejection_reason }}</p>
+                @endif
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div class="space-y-4">
                 <div class="bg-slate-50 rounded-xl p-4">
